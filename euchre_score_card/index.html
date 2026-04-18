@@ -67,6 +67,38 @@
   }
   textarea { min-height: 70px; resize: vertical; }
   .names-control { grid-column: 1 / -1; }
+  .name-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+  .name-inputs .field {
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 4px 0 10px;
+  }
+  .name-inputs .field:focus-within { border-color: var(--accent); }
+  .name-inputs .field .idx {
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 22px;
+    text-align: right;
+    padding-right: 6px;
+  }
+  .name-inputs input {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: var(--ink);
+    padding: 7px 6px;
+    font-size: 14px;
+    font-family: inherit;
+    min-width: 0;
+  }
   .buttons {
     grid-column: 1 / -1;
     display: flex;
@@ -345,8 +377,8 @@
         <input type="number" id="seed" placeholder="random" />
       </div>
       <div class="control names-control">
-        <label for="names">Player names (optional, one per line)</label>
-        <textarea id="names" placeholder="Leave blank to use Player 1, Player 2, ..."></textarea>
+        <label>Player names (optional)</label>
+        <div id="name-inputs" class="name-inputs"></div>
       </div>
       <div class="buttons">
         <button type="submit">Generate seating</button>
@@ -655,21 +687,49 @@
     });
   }
 
-  function parseNames(text, n) {
-    const lines = text.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+  function readPlayerCount() {
+    return Math.max(4, Math.min(200, parseInt(document.getElementById("players").value, 10) || 12));
+  }
+
+  function syncNameInputs() {
+    const n = readPlayerCount();
+    const container = document.getElementById("name-inputs");
+    const existing = Array.from(container.querySelectorAll("input")).map(function (i) { return i.value; });
+    container.innerHTML = "";
+    for (let i = 0; i < n; i++) {
+      const field = document.createElement("label");
+      field.className = "field";
+      const idx = document.createElement("span");
+      idx.className = "idx";
+      idx.textContent = (i + 1) + ".";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = "Player " + (i + 1);
+      input.value = existing[i] || "";
+      input.setAttribute("aria-label", "Name for player " + (i + 1));
+      field.appendChild(idx);
+      field.appendChild(input);
+      container.appendChild(field);
+    }
+  }
+
+  function parseNames(n) {
+    const inputs = document.querySelectorAll("#name-inputs input");
     const names = [];
     for (let i = 0; i < n; i++) {
-      names.push(lines[i] || "Player " + (i + 1));
+      const val = inputs[i] ? inputs[i].value.trim() : "";
+      names.push(val || "Player " + (i + 1));
     }
     return names;
   }
 
   function run() {
-    const nPlayers = Math.max(4, Math.min(200, parseInt(document.getElementById("players").value, 10) || 12));
+    const nPlayers = readPlayerCount();
     const nRounds = Math.max(1, Math.min(50, parseInt(document.getElementById("rounds").value, 10) || 6));
     const seedRaw = document.getElementById("seed").value.trim();
     const seed = seedRaw === "" ? Math.floor(Math.random() * 2 ** 32) : parseInt(seedRaw, 10);
-    const names = parseNames(document.getElementById("names").value, nPlayers);
+    syncNameInputs();
+    const names = parseNames(nPlayers);
 
     if (nPlayers < 4) {
       alert("Need at least 4 players for one table.");
@@ -693,8 +753,10 @@
     if (document.getElementById("score-cards").hidden) run();
     window.print();
   });
+  document.getElementById("players").addEventListener("input", syncNameInputs);
 
-  // Auto-generate an example on load.
+  // Seed the name inputs, then auto-generate an example on load.
+  syncNameInputs();
   run();
 })();
 </script>
