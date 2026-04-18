@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Euchre Seating Chart</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --panel-2: #334155;
+    --ink: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent-2: #a78bfa;
+    --good: #34d399;
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --border: #475569;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.45;
+  }
+  header {
+    padding: 24px 20px 8px;
+    text-align: center;
+  }
+  header h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: 0.3px; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .controls {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    align-items: end;
+  }
+  .control label {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  input[type="number"], textarea {
+    width: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-size: 15px;
+    font-family: inherit;
+  }
+  textarea { min-height: 70px; resize: vertical; }
+  .names-control { grid-column: 1 / -1; }
+  .name-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+  .name-inputs .field {
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 4px 0 10px;
+  }
+  .name-inputs .field:focus-within { border-color: var(--accent); }
+  .name-inputs .field .idx {
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 22px;
+    text-align: right;
+    padding-right: 6px;
+  }
+  .name-inputs input {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: var(--ink);
+    padding: 7px 6px;
+    font-size: 14px;
+    font-family: inherit;
+    min-width: 0;
+  }
+  .buttons {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  button {
+    background: var(--accent);
+    color: #0b1220;
+    border: 0;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  button.secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--border);
+  }
+  button:hover { filter: brightness(1.1); }
+  .summary {
+    margin-top: 18px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .summary b { color: var(--ink); }
+  .rounds {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .round {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .round h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .round h2 .badge {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    background: var(--panel-2);
+    color: var(--muted);
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .tables {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .table-card {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .table-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .diamond {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 6px;
+    align-items: center;
+    justify-items: center;
+    text-align: center;
+  }
+  .seat {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+    min-width: 70px;
+    width: 100%;
+  }
+  .seat .pos {
+    font-size: 10px;
+    letter-spacing: 0.7px;
+    color: var(--muted);
+    text-transform: uppercase;
+    display: block;
+  }
+  .seat.north { grid-column: 2; grid-row: 1; }
+  .seat.west  { grid-column: 1; grid-row: 2; border-color: var(--accent-2); }
+  .seat.east  { grid-column: 3; grid-row: 2; border-color: var(--accent-2); }
+  .seat.south { grid-column: 2; grid-row: 3; }
+  .seat.north, .seat.south { border-color: var(--accent); }
+  .partners-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .partners-note .pair { color: var(--ink); }
+  .partners-note .pair .label { color: var(--muted); }
+  .sitout {
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .sitout b { color: var(--warn); }
+  .empty {
+    color: var(--muted);
+    text-align: center;
+    padding: 40px 0;
+  }
+  footer {
+    text-align: center;
+    padding: 30px 10px 40px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  footer a { color: var(--accent); }
+
+  /* Score cards: screen view */
+  .score-cards {
+    margin-top: 24px;
+  }
+  .score-cards-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .score-cards-header h2 { margin: 0; font-size: 18px; }
+  .score-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+  }
+  /* On screen, flatten the .score-page wrappers so cards flow in one grid. */
+  .score-page { display: contents; }
+  .score-card {
+    background: #fff;
+    color: #111;
+    border: 1px solid #111;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: "Georgia", "Times New Roman", serif;
+  }
+  .score-card h3 {
+    margin: 0 0 2px;
+    font-size: 18px;
+    border-bottom: 2px solid #111;
+    padding-bottom: 6px;
+  }
+  .score-card .sub {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #555;
+    margin: 4px 0 10px;
+  }
+  .score-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .score-card th, .score-card td {
+    border: 1px solid #333;
+    padding: 4px 6px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .score-card th {
+    background: #eee;
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .score-card td.num { text-align: center; width: 32px; }
+  .score-card td.score { width: 46px; height: 22px; }
+  .score-card td.out { color: #777; font-style: italic; }
+  .score-card .totals {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .score-card .totals .box {
+    border-bottom: 1.5px solid #111;
+    min-width: 60px;
+    display: inline-block;
+  }
+
+  /* Score cards: print view &mdash; 4 cards per page, landscape, hide everything else */
+  @media print {
+    @page { size: letter landscape; margin: 0.3in; }
+    body { background: #fff; color: #111; }
+    header, footer, .controls, .summary, .rounds, .empty, .score-cards-header {
+      display: none !important;
+    }
+    main { padding: 0; max-width: none; }
+    .score-cards { margin: 0; }
+    .score-cards-grid { display: block; }
+
+    .score-page {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 0.2in;
+      width: 100%;
+      height: 7.9in; /* usable height: 8.5in page - 0.6in margins */
+      page-break-after: always;
+      break-after: page;
+    }
+    .score-page:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+    .score-card {
+      height: 100%;
+      min-height: 0;
+      border: 1px solid #000;
+      border-radius: 4px;
+      padding: 10px 14px;
+      box-sizing: border-box;
+      overflow: hidden;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      font-size: 13px;
+    }
+    .score-card h3 { font-size: 18px; }
+    .score-card table { font-size: 13px; }
+    .score-card th, .score-card td { padding: 5px 7px; }
+    .score-card td.score { height: 26px; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Euchre Seating Chart</h1>
+    <p>Balanced seating across rounds &mdash; varies partners, tablemates, and table locations.</p>
+  </header>
+  <main>
+    <form class="controls" id="form">
+      <div class="control">
+        <label for="players">Number of players</label>
+        <input type="number" id="players" min="4" max="200" value="12" />
+      </div>
+      <div class="control">
+        <label for="rounds">Number of rounds</label>
+        <input type="number" id="rounds" min="1" max="50" value="6" />
+      </div>
+      <div class="control">
+        <label for="seed">Seed (optional)</label>
+        <input type="number" id="seed" placeholder="random" />
+      </div>
+      <div class="control names-control">
+        <label>Player names (optional)</label>
+        <div id="name-inputs" class="name-inputs"></div>
+      </div>
+      <div class="buttons">
+        <button type="submit">Generate seating</button>
+        <button type="button" class="secondary" id="reshuffle">Reshuffle</button>
+        <button type="button" class="secondary" id="print-cards">Print score cards</button>
+      </div>
+    </form>
+
+    <div id="summary" class="summary" hidden></div>
+    <div id="output" class="rounds"></div>
+    <section id="score-cards" class="score-cards" hidden>
+      <div class="score-cards-header">
+        <h2>Score cards</h2>
+        <span style="color:var(--muted);font-size:13px;">4 per page when printed</span>
+      </div>
+      <div id="score-cards-grid" class="score-cards-grid"></div>
+    </section>
+    <div id="empty" class="empty">Enter options above and click &ldquo;Generate seating&rdquo;.</div>
+  </main>
+  <footer>
+    Heuristic scheduler &middot; randomized search minimizing repeat partners, tablemates, table positions, and sit-outs.
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+
+  // Seeded PRNG (mulberry32) so results are reproducible when a seed is given.
+  function makeRng(seed) {
+    let s = (seed >>> 0) || (Math.floor(Math.random() * 2 ** 32) >>> 0);
+    return function () {
+      s |= 0;
+      s = (s + 0x6D2B79F5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function shuffleInPlace(arr, rng) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      const tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  function pairKey(a, b) { return a < b ? a + "|" + b : b + "|" + a; }
+
+  // Generate one round's seating by shuffling player indices.
+  // Players 0..3 go to table 0 as [N, E, S, W], etc. Partners are N-S (0,2) and E-W (1,3).
+  function generateRound(nPlayers, nTables, rng) {
+    const order = [];
+    for (let i = 0; i < nPlayers; i++) order.push(i);
+    shuffleInPlace(order, rng);
+    const tables = [];
+    for (let t = 0; t < nTables; t++) tables.push(order.slice(t * 4, t * 4 + 4));
+    const sittingOut = order.slice(nTables * 4);
+    return { tables: tables, sittingOut: sittingOut };
+  }
+
+  // Scoring: lower is better.
+  // Penalties are quadratic in repeat counts so additional repeats hurt more.
+  function scoreRound(round, hist) {
+    let score = 0;
+    const W_PARTNER = 200;
+    const W_TABLEMATE = 25;
+    const W_TABLE_LOC = 6;
+    const W_SITOUT = 80;
+
+    for (let t = 0; t < round.tables.length; t++) {
+      const tbl = round.tables[t];
+      // Partners: seats (0,2) and (1,3).
+      const p1 = hist.partner[pairKey(tbl[0], tbl[2])] || 0;
+      const p2 = hist.partner[pairKey(tbl[1], tbl[3])] || 0;
+      score += (p1 + 1) * (p1 + 1) * W_PARTNER - W_PARTNER;
+      score += (p2 + 1) * (p2 + 1) * W_PARTNER - W_PARTNER;
+
+      for (let i = 0; i < 4; i++) {
+        for (let j = i + 1; j < 4; j++) {
+          const c = hist.tablemate[pairKey(tbl[i], tbl[j])] || 0;
+          score += (c + 1) * (c + 1) * W_TABLEMATE - W_TABLEMATE;
+        }
+        const loc = hist.tableLoc[tbl[i]][t] || 0;
+        score += (loc + 1) * (loc + 1) * W_TABLE_LOC - W_TABLE_LOC;
+      }
+    }
+    for (const p of round.sittingOut) {
+      const s = hist.sitOut[p] || 0;
+      score += (s + 1) * (s + 1) * W_SITOUT - W_SITOUT;
+    }
+    return score;
+  }
+
+  function applyRound(round, hist) {
+    for (let t = 0; t < round.tables.length; t++) {
+      const tbl = round.tables[t];
+      const k1 = pairKey(tbl[0], tbl[2]);
+      const k2 = pairKey(tbl[1], tbl[3]);
+      hist.partner[k1] = (hist.partner[k1] || 0) + 1;
+      hist.partner[k2] = (hist.partner[k2] || 0) + 1;
+      for (let i = 0; i < 4; i++) {
+        for (let j = i + 1; j < 4; j++) {
+          const k = pairKey(tbl[i], tbl[j]);
+          hist.tablemate[k] = (hist.tablemate[k] || 0) + 1;
+        }
+        hist.tableLoc[tbl[i]][t] = (hist.tableLoc[tbl[i]][t] || 0) + 1;
+      }
+    }
+    for (const p of round.sittingOut) {
+      hist.sitOut[p] = (hist.sitOut[p] || 0) + 1;
+    }
+  }
+
+  function buildSchedule(nPlayers, nRounds, rng) {
+    const nTables = Math.floor(nPlayers / 4);
+    const hist = {
+      partner: {},
+      tablemate: {},
+      sitOut: {},
+      tableLoc: Array.from({ length: nPlayers }, () => new Array(nTables).fill(0)),
+    };
+    const rounds = [];
+    const TRIALS = Math.min(8000, 1500 + nPlayers * 200);
+
+    for (let r = 0; r < nRounds; r++) {
+      let best = null;
+      let bestScore = Infinity;
+      for (let i = 0; i < TRIALS; i++) {
+        const cand = generateRound(nPlayers, nTables, rng);
+        const s = scoreRound(cand, hist);
+        if (s < bestScore) {
+          bestScore = s;
+          best = cand;
+          if (s === 0) break;
+        }
+      }
+      applyRound(best, hist);
+      rounds.push(best);
+    }
+    return { rounds: rounds, history: hist, nTables: nTables };
+  }
+
+  function summarize(schedule, names) {
+    const h = schedule.history;
+    const partnerCounts = Object.values(h.partner);
+    const mateCounts = Object.values(h.tablemate);
+    const sitOutCounts = Object.values(h.sitOut);
+    const maxPartner = partnerCounts.length ? Math.max.apply(null, partnerCounts) : 0;
+    const maxMate = mateCounts.length ? Math.max.apply(null, mateCounts) : 0;
+    const maxSitOut = sitOutCounts.length ? Math.max.apply(null, sitOutCounts) : 0;
+    const totalPartnerSlots = schedule.rounds.length * schedule.nTables * 2;
+    const uniquePartners = Object.keys(h.partner).length;
+    return {
+      maxPartner: maxPartner,
+      maxMate: maxMate,
+      maxSitOut: maxSitOut,
+      uniquePartnerPairs: uniquePartners,
+      totalPartnerSlots: totalPartnerSlots,
+    };
+  }
+
+  function render(schedule, names) {
+    const out = document.getElementById("output");
+    const empty = document.getElementById("empty");
+    const summaryEl = document.getElementById("summary");
+    out.innerHTML = "";
+    empty.hidden = true;
+
+    const POS = ["North", "East", "South", "West"];
+    const POS_CLASS = ["north", "east", "south", "west"];
+
+    schedule.rounds.forEach((round, rIdx) => {
+      const roundEl = document.createElement("section");
+      roundEl.className = "round";
+      const nSitting = round.tables.length * 4;
+      roundEl.innerHTML =
+        '<h2>Round ' + (rIdx + 1) +
+        ' <span class="badge">' + round.tables.length + ' table' +
+        (round.tables.length === 1 ? "" : "s") + " &middot; " + nSitting +
+        ' playing</span></h2>';
+
+      const tablesEl = document.createElement("div");
+      tablesEl.className = "tables";
+
+      round.tables.forEach((tbl, tIdx) => {
+        const card = document.createElement("div");
+        card.className = "table-card";
+        const seats = tbl.map(function (p, i) {
+          return (
+            '<div class="seat ' + POS_CLASS[i] + '">' +
+            '<span class="pos">' + POS[i] + '</span>' +
+            escapeHtml(names[p]) +
+            "</div>"
+          );
+        }).join("");
+        card.innerHTML =
+          '<div class="table-title"><span>Table ' + (tIdx + 1) +
+          '</span><span>N-S vs E-W</span></div>' +
+          '<div class="diamond">' + seats + "</div>" +
+          '<div class="partners-note">' +
+          '<div class="pair"><span class="label">Team A (N-S):</span> ' +
+          escapeHtml(names[tbl[0]]) + " &amp; " + escapeHtml(names[tbl[2]]) + "</div>" +
+          '<div class="pair"><span class="label">Team B (E-W):</span> ' +
+          escapeHtml(names[tbl[1]]) + " &amp; " + escapeHtml(names[tbl[3]]) + "</div>" +
+          "</div>";
+        tablesEl.appendChild(card);
+      });
+      roundEl.appendChild(tablesEl);
+
+      if (round.sittingOut.length) {
+        const outEl = document.createElement("div");
+        outEl.className = "sitout";
+        outEl.innerHTML =
+          "<b>Sitting out:</b> " +
+          round.sittingOut.map(function (p) { return escapeHtml(names[p]); }).join(", ");
+        roundEl.appendChild(outEl);
+      }
+      out.appendChild(roundEl);
+    });
+
+    const s = summarize(schedule, names);
+    summaryEl.hidden = false;
+    summaryEl.innerHTML =
+      "<b>Summary:</b> " +
+      "unique partner pairings used: <b>" + s.uniquePartnerPairs + "</b> / " + s.totalPartnerSlots + " slots &middot; " +
+      "most times any pair partnered: <b>" + s.maxPartner + "</b> &middot; " +
+      "most times any pair shared a table: <b>" + s.maxMate + "</b> &middot; " +
+      "most times any one player sat out: <b>" + s.maxSitOut + "</b>.";
+
+    renderScoreCards(schedule, names);
+  }
+
+  // For one player, walk each round and figure out their table/partner/opponents.
+  function playerSchedule(schedule, playerIdx) {
+    return schedule.rounds.map(function (round, r) {
+      for (let t = 0; t < round.tables.length; t++) {
+        const tbl = round.tables[t];
+        const pos = tbl.indexOf(playerIdx);
+        if (pos >= 0) {
+          return {
+            round: r + 1,
+            table: t + 1,
+            partner: tbl[(pos + 2) % 4],
+            opp1: tbl[(pos + 1) % 4],
+            opp2: tbl[(pos + 3) % 4],
+            sitOut: false,
+          };
+        }
+      }
+      return { round: r + 1, sitOut: true };
+    });
+  }
+
+  function renderScoreCards(schedule, names) {
+    const section = document.getElementById("score-cards");
+    const grid = document.getElementById("score-cards-grid");
+    grid.innerHTML = "";
+    let page = null;
+    for (let p = 0; p < names.length; p++) {
+      if (p % 4 === 0) {
+        page = document.createElement("div");
+        page.className = "score-page";
+        grid.appendChild(page);
+      }
+      const rows = playerSchedule(schedule, p).map(function (entry) {
+        if (entry.sitOut) {
+          return (
+            '<tr><td class="num">' + entry.round + "</td>" +
+            '<td class="out" colspan="4">Sitting out</td>' +
+            '<td class="score"></td></tr>'
+          );
+        }
+        return (
+          '<tr><td class="num">' + entry.round + "</td>" +
+          '<td class="num">' + entry.table + "</td>" +
+          "<td>" + escapeHtml(names[entry.partner]) + "</td>" +
+          "<td>" + escapeHtml(names[entry.opp1]) + "</td>" +
+          "<td>" + escapeHtml(names[entry.opp2]) + "</td>" +
+          '<td class="score"></td></tr>'
+        );
+      }).join("");
+
+      const card = document.createElement("div");
+      card.className = "score-card";
+      card.innerHTML =
+        "<h3>" + escapeHtml(names[p]) + "</h3>" +
+        '<div class="sub">Euchre tournament score card</div>' +
+        "<table>" +
+          "<thead><tr>" +
+            "<th>Rd</th><th>Tbl</th><th>Partner</th><th>Opp 1</th><th>Opp 2</th><th>Score</th>" +
+          "</tr></thead>" +
+          "<tbody>" + rows + "</tbody>" +
+        "</table>" +
+        '<div class="totals"><span>Total points:</span><span class="box">&nbsp;</span></div>';
+      page.appendChild(card);
+    }
+    section.hidden = false;
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function readPlayerCount() {
+    return Math.max(4, Math.min(200, parseInt(document.getElementById("players").value, 10) || 12));
+  }
+
+  function syncNameInputs() {
+    const n = readPlayerCount();
+    const container = document.getElementById("name-inputs");
+    const existing = Array.from(container.querySelectorAll("input")).map(function (i) { return i.value; });
+    container.innerHTML = "";
+    for (let i = 0; i < n; i++) {
+      const field = document.createElement("label");
+      field.className = "field";
+      const idx = document.createElement("span");
+      idx.className = "idx";
+      idx.textContent = (i + 1) + ".";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = "Player " + (i + 1);
+      input.value = existing[i] || "";
+      input.setAttribute("aria-label", "Name for player " + (i + 1));
+      field.appendChild(idx);
+      field.appendChild(input);
+      container.appendChild(field);
+    }
+  }
+
+  function parseNames(n) {
+    const inputs = document.querySelectorAll("#name-inputs input");
+    const names = [];
+    for (let i = 0; i < n; i++) {
+      const val = inputs[i] ? inputs[i].value.trim() : "";
+      names.push(val || "Player " + (i + 1));
+    }
+    return names;
+  }
+
+  function run() {
+    const nPlayers = readPlayerCount();
+    const nRounds = Math.max(1, Math.min(50, parseInt(document.getElementById("rounds").value, 10) || 6));
+    const seedRaw = document.getElementById("seed").value.trim();
+    const seed = seedRaw === "" ? Math.floor(Math.random() * 2 ** 32) : parseInt(seedRaw, 10);
+    syncNameInputs();
+    const names = parseNames(nPlayers);
+
+    if (nPlayers < 4) {
+      alert("Need at least 4 players for one table.");
+      return;
+    }
+
+    const rng = makeRng(seed);
+    const schedule = buildSchedule(nPlayers, nRounds, rng);
+    render(schedule, names);
+  }
+
+  document.getElementById("form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    run();
+  });
+  document.getElementById("reshuffle").addEventListener("click", function () {
+    document.getElementById("seed").value = "";
+    run();
+  });
+  document.getElementById("print-cards").addEventListener("click", function () {
+    if (document.getElementById("score-cards").hidden) run();
+    window.print();
+  });
+  document.getElementById("players").addEventListener("input", syncNameInputs);
+
+  // Seed the name inputs, then auto-generate an example on load.
+  syncNameInputs();
+  run();
+})();
+</script>
+</body>
+</html>
